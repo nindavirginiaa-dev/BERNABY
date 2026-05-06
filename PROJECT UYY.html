@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Bernaby - Atur Keuangan Mahasiswa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Quicksand', 'Inter', sans-serif; }
+        body { background: #f0f4f8; color: #1e2a3e; padding-bottom: 80px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px 16px 48px; }
+        .card { background: white; border-radius: 28px; padding: 20px 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .btn { background: #2c7da0; color: white; border: 2px solid white; padding: 12px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; font-size: 1rem; width: 100%; text-align: center; transition: 0.2s; }
+        .btn-secondary { background: #e9ecef; color: #2c7da0; border: 2px solid white; }
+        .btn-danger { background: #e26d5c; color: white; border: 2px solid white; }
+        .btn-warning { background: #f4c542; color: #5c3d00; border: 2px solid white; }
+        .btn-sm { padding: 8px 16px; font-size: 0.85rem; width: auto; }
+        .btn:hover { opacity: 0.9; transform: scale(0.98); }
+        input, select { width: 100%; padding: 14px 16px; border-radius: 24px; border: 1px solid #ced4da; font-size: 1rem; margin-top: 8px; margin-bottom: 16px; outline: none; }
+        input:focus { border-color: #2c7da0; }
+        .logo-area { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; justify-content: center; }
+        .logo-placeholder { width: 70px; height: 70px; border-radius: 35px; display: flex; align-items: center; justify-content: center; font-size: 42px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .top-bar { background: #2c7da0; margin: -20px -16px 20px -16px; padding: 20px 16px; border-bottom-left-radius: 28px; border-bottom-right-radius: 28px; }
+        .top-bar .logo-area { margin-bottom: 0; }
+        .top-bar h1 { font-family: 'Fredoka One', cursive; font-size: 2rem; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); letter-spacing: 2px; }
+        .overview { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .saldo-box { flex: 1; }
+        .halo-text { font-size: 1rem; font-weight: 500; margin-bottom: 4px; }
+        .icon-mood { font-size: 48px; margin-left: 16px; width: 80px; height: 80px; border-radius: 40px; display: flex; align-items: center; justify-content: center; }
+        .mood-stabil { background: #2c7da0; color: white; }
+        .mood-lesu { background: #f4c542; color: #5c3d00; }
+        .mood-marah { background: #e26d5c; color: white; }
+        .balance { font-size: 2rem; font-weight: 800; margin: 8px 0; }
+        .label { color: #5f6c7a; font-weight: 500; }
+        .fitur-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+        .fitur-icon-card { background: #f8fafc; border-radius: 20px; padding: 16px 8px; text-align: center; cursor: pointer; transition: 0.2s; border: 1px solid #e2e8f0; }
+        .fitur-icon-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); background: white; }
+        .fitur-icon-card i { font-size: 32px; color: #2c7da0; margin-bottom: 8px; display: block; }
+        .fitur-icon-card span { font-size: 0.75rem; font-weight: 500; }
+        .transaction-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .transaction-table th, .transaction-table td { padding: 10px 6px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        .transaction-table th { background: #f1f5f9; }
+        .summary-stats { display: flex; justify-content: space-between; margin-top: 16px; padding-top: 12px; border-top: 2px solid #e2e8f0; font-weight: 600; font-size: 0.8rem; flex-wrap: wrap; gap: 8px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; max-width: 340px; width: 90%; border-radius: 32px; padding: 28px 24px; text-align: center; max-height: 80vh; overflow-y: auto; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; align-items: center; padding: 12px 20px; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); border-top-left-radius: 24px; border-top-right-radius: 24px; max-width: 800px; margin: 0 auto; width: 100%; z-index: 99; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: #8a99aa; transition: 0.2s; font-size: 0.7rem; }
+        .nav-item i { font-size: 1.5rem; }
+        .nav-item.active { color: #2c7da0; }
+        .fitur-highlight { background: #eef2ff; border-radius: 20px; padding: 16px; margin: 16px 0; text-align: left; }
+        .countdown-text { font-size: 0.75rem; color: #666; margin-top: 12px; }
+        .flex-row { display: flex; gap: 12px; margin-top: 8px; }
+        .splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #2c7da0, #1f5e7a); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; animation: fadeOut 1.5s ease forwards; }
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+        .splash-logo { width: 120px; height: 120px; background: white; border-radius: 60px; display: flex; align-items: center; justify-content: center; font-size: 65px; color: #2c7da0; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .splash-text { font-family: 'Fredoka One', cursive; color: white; font-size: 3rem; font-weight: 700; letter-spacing: 3px; text-shadow: 3px 3px 6px rgba(0,0,0,0.2); }
+        .splash-sub { color: rgba(255,255,255,0.8); margin-top: 10px; font-size: 1rem; }
+        .icon-select { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; justify-content: center; }
+        .icon-option { width: 50px; height: 50px; border-radius: 25px; background: #f0f4f8; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .icon-option.selected { border-color: #2c7da0; background: #e0f0f7; }
+        .icon-option:hover { transform: scale(1.05); }
+        .halo-card { background: white; border-radius: 28px; padding: 20px 24px; margin-bottom: 20px; transition: background 0.3s, color 0.3s; }
+        .priority-list { list-style: none; margin-top: 12px; }
+        .priority-item { background: #f8fafc; border-radius: 16px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .close-btn { cursor: pointer; color: #999; font-size: 1.2rem; }
+        .close-btn:hover { color: #e26d5c; }
+        canvas { max-width: 300px; margin: 0 auto; display: block; }
+        .warning-badge { background: #e26d5c; color: white; border-radius: 20px; padding: 4px 12px; font-size: 0.7rem; margin-left: 8px; }
+        .forgot-link { color: #2c7da0; cursor: pointer; font-size: 0.85rem; margin-top: 8px; display: inline-block; }
+        .forgot-link:hover { text-decoration: underline; }
+        .upload-preview { max-width: 100%; border-radius: 16px; margin-top: 12px; }
+        .photo-history-item { display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 16px; margin-bottom: 8px; }
+        .photo-history-img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; background: #e2e8f0; }
+        .photo-history-info { flex: 1; font-size: 0.8rem; }
+        .delete-photo { color: #e26d5c; cursor: pointer; font-size: 1rem; }
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px; display: block; background: #e2e8f0; border: 3px solid #2c7da0; }
+        .avatar-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 8px auto; display: block; }
+        .scan-buttons { display: flex; gap: 12px; margin: 16px 0; }
+    </style>
+</head>
+<body>
+<div class="splash-screen" id="splashScreen">
+    <div class="splash-logo"><i class="fas fa-bear"></i></div>
+    <div class="splash-text">BERNABY</div>
+    <div class="splash-sub">Atur Keuanganmu</div>
+</div>
+<div class="container" id="appRoot"></div>
+<div id="bottomNavPlaceholder"></div>
+
+<script>
+// ==================== SEMUA JAVASCRIPT ASLI ANDA (TIDAK DIUBAH) ====================
+(function() {
+    // Hilangkan splash screen
+    setTimeout(function() {
+        var splash = document.getElementById('splashScreen');
+        if (splash) splash.style.display = 'none';
+    }, 1500);
+    
+    // ==================== STATE GLOBAL ====================
+    var users = {};
+    var currentUser = null;
+    var skipCounter = 0;
+    var onboardCompleted = false;
+    var MAX_SKIP = 3;
+    var tempProfile = { name: "", job: "", monthlyIncome: 0, incomeSource: "" };
+    var alertShownToday = {};
+    
+    // Load data dari localStorage
+    try {
+        var savedUsers = localStorage.getItem('bernaby_users');
+        if (savedUsers) users = JSON.parse(savedUsers);
+        skipCounter = parseInt(localStorage.getItem('bernaby_skip_counter') || '0');
+        onboardCompleted = localStorage.getItem('bernaby_onboard_completed') === 'true';
+    } catch(e) { console.log("Error loading data", e); }
+    
+    // ==================== HELPER FUNCTIONS ====================
+    function saveUsers() {
+        localStorage.setItem('bernaby_users', JSON.stringify(users));
+    }
+    
+    function createFullUser(username, password, profileData) {
+        if (users[username]) return false;
+        users[username] = {
+            password: password,
+            displayName: profileData.name,
+            job: profileData.job,
+            monthlyIncome: profileData.monthlyIncome,
+            incomeSource: profileData.incomeSource,
+            balance: profileData.monthlyIncome,
+            transactions: [],
+            priorities: [],
+            dailyBudget: null,
+            uploadedPhotos: [],
+            profileAvatar: null
+        };
+        saveUsers();
+        return true;
+    }
+    
+    function getTodayExpenses(username) {
+        var user = users[username];
+        if (!user) return 0;
+        var today = new Date().toISOString().split('T')[0];
+        var total = 0;
+        for (var i = 0; i < user.transactions.length; i++) {
+            if (user.transactions[i].type === 'pengeluaran' && user.transactions[i].date === today) {
+                total += user.transactions[i].amount;
+            }
+        }
+        return total;
+    }
+    
+    function checkDailyBudgetWarning(username) {
+        var user = users[username];
+        if (!user || !user.dailyBudget) return false;
+        var today = new Date().toISOString().split('T')[0];
+        var todayExpenses = getTodayExpenses(username);
+        if (todayExpenses > user.dailyBudget && !alertShownToday[username + today]) {
+            alertShownToday[username + today] = true;
+            setTimeout(function() {
+                alert("⚠️ PERINGATAN! Pengeluaran hari ini (Rp " + todayExpenses.toLocaleString() + ") melebihi budget harian Anda (Rp " + user.dailyBudget.toLocaleString() + ")");
+            }, 100);
+            return true;
+        }
+        return false;
+    }
+    
+    function addTransaction(username, type, desc, amount, category, icon, date) {
+        var user = users[username];
+        if (!user) return false;
+        if (amount <= 0) return false;
+        if (type === 'pengeluaran') {
+            if (user.balance < amount) return false;
+            user.balance -= amount;
+            checkDailyBudgetWarning(username);
+        } else {
+            user.balance += amount;
+        }
+        user.transactions.unshift({
+            id: Date.now(),
+            type: type,
+            desc: desc,
+            amount: amount,
+            category: category || "Lainnya",
+            icon: icon || "💰",
+            date: date || new Date().toISOString().split('T')[0]
+        });
+        if (user.transactions.length > 30) user.transactions.pop();
+        saveUsers();
+        return true;
+    }
+    
+    function deleteTransaction(username, trxId) {
+        var user = users[username];
+        if (!user) return false;
+        var trx = user.transactions.find(function(t) { return t.id == trxId; });
+        if (!trx) return false;
+        if (trx.type === 'pengeluaran') {
+            user.balance += trx.amount;
+        } else {
+            user.balance -= trx.amount;
+        }
+        user.transactions = user.transactions.filter(function(t) { return t.id != trxId; });
+        saveUsers();
+        return true;
+    }
+    
+    function getMoodStyle(balance, monthlyIncome) {
+        var ratio = balance / monthlyIncome;
+        if (ratio >= 0.4) return { icon: "😊", bgClass: "mood-stabil", label: "Stabil", color: "#2c7da0", cardBg: "#2c7da0", cardText: "white" };
+        if (ratio >= 0.1) return { icon: "😔", bgClass: "mood-lesu", label: "Lesu", color: "#f4c542", cardBg: "#f4c542", cardText: "#5c3d00" };
+        return { icon: "😠", bgClass: "mood-marah", label: "Defisit", color: "#e26d5c", cardBg: "#e26d5c", cardText: "white" };
+    }
+    
+    function mergeSortTransactions(transactions) {
+        if (transactions.length <= 1) return transactions;
+        var mid = Math.floor(transactions.length / 2);
+        var left = mergeSortTransactions(transactions.slice(0, mid));
+        var right = mergeSortTransactions(transactions.slice(mid));
+        return merge(left, right);
+    }
+    
+    function merge(left, right) {
+        var result = [];
+        while (left.length && right.length) {
+            if (left[0].id > right[0].id) result.push(left.shift());
+            else result.push(right.shift());
+        }
+        return result.concat(left).concat(right);
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ==================== FUNGSI OCR DENGAN TESSERACT.js ====================
+    async function extractAmountFromImage(imageDataUrl, callback) {
+        try {
+            console.log("Memulai OCR dengan Tesseract.js...");
+            var blob = await fetch(imageDataUrl).then(res => res.blob());
+            const { data: { text } } = await Tesseract.recognize(blob, 'ind+eng', {
+                logger: m => { if (m.status === 'recognizing text') console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`); }
+            });
+            console.log("Hasil OCR:", text);
+            var totalAmount = extractTotalFromText(text);
+            if (totalAmount && totalAmount > 0) {
+                console.log("Berhasil membaca total: Rp " + totalAmount.toLocaleString());
+                callback(totalAmount, "Struk Belanja");
+            } else {
+                var allNumbers = text.match(/\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?/g);
+                if (allNumbers && allNumbers.length > 0) {
+                    var largestNumber = 0;
+                    for (var i = 0; i < allNumbers.length; i++) {
+                        var cleanNum = allNumbers[i].replace(/\./g, '').replace(/,/g, '');
+                        var num = parseInt(cleanNum);
+                        if (!isNaN(num) && num > largestNumber && num > 1000 && num < 100000000) {
+                            largestNumber = num;
+                        }
+                    }
+                    if (largestNumber > 0) {
+                        callback(largestNumber, "Struk Belanja");
+                        return;
+                    }
+                }
+                callback(null, null);
+            }
+        } catch (error) {
+            console.error("OCR Error:", error);
+            callback(null, null);
+        }
+    }
+    
+    function extractTotalFromText(text) {
+        if (!text) return null;
+        var patterns = [
+            /TOTAL\s*:?\s*Rp?\s*([\d.,]+)/i,
+            /TOTAL\s*BAYAR\s*:?\s*Rp?\s*([\d.,]+)/i,
+            /JUMLAH\s*:?\s*Rp?\s*([\d.,]+)/i,
+            /BAYAR\s*:?\s*Rp?\s*([\d.,]+)/i,
+            /Rp\s*([\d.,]+)/i,
+            /(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?)/g
+        ];
+        var amounts = [];
+        for (var p = 0; p < patterns.length; p++) {
+            var matches = text.match(patterns[p]);
+            if (matches) {
+                for (var m = 0; m < matches.length; m++) {
+                    var match = matches[m];
+                    var numMatch = match.match(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/);
+                    if (numMatch) {
+                        var cleanNum = numMatch[1].replace(/\./g, '').replace(/,/g, '');
+                        var num = parseInt(cleanNum);
+                        if (!isNaN(num) && num > 1000 && num < 100000000) {
+                            amounts.push(num);
+                        }
+                    }
+                }
+            }
+        }
+        if (amounts.length === 0) return null;
+        return Math.max.apply(null, amounts);
+    }
+    
+    function showManualInputDialog(callback) {
+        var modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = '<div class="modal-content">' +
+            '<i class="fas fa-times close-btn" style="float:right; font-size:1.2rem; cursor:pointer;" id="closeManualModal"></i>' +
+            '<i class="fas fa-exclamation-triangle" style="font-size:48px; color:#e26d5c; margin-bottom:16px;"></i>' +
+            '<h3>⚠️ Gagal Membaca Struk</h3>' +
+            '<p style="margin:16px 0; color:#666;">Sistem tidak dapat membaca total belanja dari gambar. Silakan masukkan secara manual:</p>' +
+            '<input type="number" id="manualAmount" placeholder="Masukkan total belanja (Rp)" style="margin-bottom:12px;">' +
+            '<div class="flex-row">' +
+            '<button class="btn" id="submitManualBtn">✅ Simpan</button>' +
+            '<button class="btn-secondary" id="cancelManualBtn">❌ Batal</button>' +
+            '</div></div>';
+        document.body.appendChild(modal);
+        document.getElementById('closeManualModal').onclick = function() { modal.remove(); };
+        document.getElementById('cancelManualBtn').onclick = function() { modal.remove(); };
+        document.getElementById('submitManualBtn').onclick = function() {
+            var amount = parseInt(document.getElementById('manualAmount').value);
+            if (isNaN(amount) || amount <= 0) {
+                alert("Masukkan nominal yang valid!");
+                return;
+            }
+            modal.remove();
+            callback(amount, "Input Manual");
+        };
+    }
+    
+    function processImageAndExtractAmount(imageDataUrl, callback) {
+        extractAmountFromImage(imageDataUrl, function(amount, merchant) {
+            if (amount && amount > 0) {
+                callback(amount, merchant || "Struk Belanja");
+            } else {
+                showManualInputDialog(function(manualAmount, manualMerchant) {
+                    callback(manualAmount, manualMerchant);
+                });
+            }
+        });
+    }
+
+    // ==================== PERUBAHAN: SLIDE ONBOARDING (Ranking, Atur Harian, Diagram) ====================
+    var fiturUnggulanBaru = [
+        { title: "🏆 Fitur Ranking", desc: "Lihat peringkat pengeluaran tertinggi Anda bulan ini. Kendalikan kebiasaan belanja dan jadi lebih bijak!" },
+        { title: "📅 Fitur Atur Harian", desc: "Tentukan budget harian dan dapatkan peringatan realtime jika pengeluaran melebihi batas yang ditentukan." },
+        { title: "📊 Fitur Diagram", desc: "Visualisasikan pengeluaran per kategori dengan diagram pie yang menarik dan mudah dipahami." }
+    ];
+    
+    function renderOnboardingStep(step, onFinish) {
+        var modalDiv = document.createElement('div');
+        modalDiv.className = 'modal';
+        var fitur = fiturUnggulanBaru[step];
+        var remaining = MAX_SKIP - skipCounter;
+        modalDiv.innerHTML = '<div class="modal-content"><div class="logo-area" style="justify-content:center;margin-bottom:16px;"><div class="logo-placeholder" style="background:#2c7da0;color:white;"><i class="fas fa-bear"></i></div><h1 style="font-size:1.5rem; font-family:\'Fredoka One\', cursive;">BERNABY</h1></div><i class="fas fa-crown" style="font-size:48px;color:#2c7da0;"></i><h3>✨ Fitur Andalan ' + (step+1) + '/3 ✨</h3><div class="fitur-highlight"><h3 style="margin-bottom:12px;">' + fitur.title + '</h3><p>' + fitur.desc + '</p></div><button class="btn" id="nextOnboardBtn">' + (step === 2 ? 'Mulai Sekarang' : 'Selanjutnya') + '</button><p class="countdown-text">Sisa kesempatan lewati: ' + remaining + ' / ' + MAX_SKIP + '</p><button class="btn-secondary" id="skipOnboardBtn" style="margin-top:8px;background:transparent;">Lewati</button></div>';
+        document.body.appendChild(modalDiv);
+        document.getElementById('nextOnboardBtn').onclick = function() {
+            modalDiv.remove();
+            if (step + 1 < 3) renderOnboardingStep(step + 1, onFinish);
+            else onFinish();
+        };
+        document.getElementById('skipOnboardBtn').onclick = function() {
+            skipCounter++;
+            localStorage.setItem('bernaby_skip_counter', skipCounter);
+            if (skipCounter >= MAX_SKIP) {
+                localStorage.setItem('bernaby_onboard_completed', 'true');
+                onboardCompleted = true;
+            }
+            modalDiv.remove();
+            if (step + 1 < 3 && skipCounter < MAX_SKIP) renderOnboardingStep(step + 1, onFinish);
+            else onFinish();
+        };
+    }
+    
+    // ==================== FITUR-FITUR (SEMUA TETAP ADA) ====================
+    function renderRankingPage() {
+        if (!currentUser || !users[currentUser]) return;
+        var user = users[currentUser];
+        var now = new Date();
+        var currentMonth = now.getMonth();
+        var currentYear = now.getFullYear();
+        var expenses = user.transactions.filter(function(t) {
+            if (t.type !== 'pengeluaran') return false;
+            var tDate = new Date(t.date);
+            return tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
+        });
+        expenses.sort(function(a,b) { return b.amount - a.amount; });
+        var root = document.getElementById('appRoot');
+        var html = '<div class="card"><div class="logo-area" style="justify-content:space-between;"><div></div><h2>🏆 Ranking Pengeluaran Bulan Ini</h2><i class="fas fa-times close-btn" id="closeRanking" style="font-size:1.5rem;"></i></div>';
+        if (expenses.length === 0) {
+            html += '<p style="text-align:center;">Belum ada pengeluaran bulan ini</p>';
+        } else {
+            for (var i = 0; i < expenses.length; i++) {
+                var e = expenses[i];
+                html += '<div class="priority-item"><span>' + (i+1) + '. ' + e.icon + ' ' + escapeHtml(e.desc) + '</span><span>Rp ' + e.amount.toLocaleString() + '</span></div>';
+            }
+        }
+        html += '</div>';
+        root.innerHTML = html;
+        document.getElementById('closeRanking').onclick = function() { renderHomePage(); };
+        renderBottomNav('home');
+    }
+    
+    function renderPrioritasPage() {
+        if (!currentUser || !users[currentUser]) return;
+        var user = users[currentUser];
+        if (!user.priorities) user.priorities = [];
+        var priorityIcons = ["⭐", "🔥", "💡", "📌", "🎯", "🏆"];
+        
+        function showAddModal() {
+            var modal = document.createElement('div');
+            modal.className = 'modal';
+            var iconsHtml = '';
+            for (var i = 0; i < priorityIcons.length; i++) {
+                iconsHtml += '<div class="icon-option">' + priorityIcons[i] + '</div>';
+            }
+            modal.innerHTML = '<div class="modal-content"><i class="fas fa-times close-btn" id="closeModal" style="float:right; font-size:1.2rem;"></i><h3>Tambah Prioritas</h3><input type="text" id="priorityName" placeholder="Nama prioritas"><input type="number" id="priorityUrgency" placeholder="Urgensi (1-10)" min="1" max="10"><div class="icon-select" id="priorityIconSelect">' + iconsHtml + '</div><div class="flex-row"><button class="btn-secondary" id="cancelPriority">Batal</button><button class="btn" id="savePriority">Simpan</button></div></div>';
+            document.body.appendChild(modal);
+            
+            var selectedIcon = "⭐";
+            var iconDivs = modal.querySelectorAll('.icon-option');
+            for (var i = 0; i < iconDivs.length; i++) {
+                iconDivs[i].onclick = function() {
+                    var parent = this.parentNode;
+                    var all = parent.querySelectorAll('.icon-option');
+                    for (var j = 0; j < all.length; j++) all[j].classList.remove('selected');
+                    this.classList.add('selected');
+                    selectedIcon = this.innerHTML;
+                };
+            }
+            iconDivs[0].classList.add('selected');
+            
+            document.getElementById('closeModal').onclick = function() { modal.remove(); };
+            document.getElementById('cancelPriority').onclick = function() { modal.remove(); };
+            document.getElementById('savePriority').onclick = function() {
+                var name = document.getElementById('priorityName').value.trim();
+                var urgency = parseInt(document.getElementById('priorityUrgency').value);
+                if (!name || isNaN(urgency) || urgency < 1 || urgency > 10) {
+                    alert("Isi data dengan benar!");
+                    return;
+                }
+                user.priorities.push({ name: name, urgency: urgency, icon: selectedIcon });
+                saveUsers();
+                modal.remove();
+                renderPrioritasPage();
+            };
+        }
+        
+        var root = document.getElementById('appRoot');
+        var html = '<div class="card"><div class="logo-area" style="justify-content:space-between;"><div></div><h2>📋 Daftar Prioritas</h2><i class="fas fa-times close-btn" id="closePrioritas" style="font-size:1.5rem;"></i></div><button class="btn" id="addPriorityBtn" style="margin-bottom:16px;">+ Tambah Prioritas</button><div id="priorityList">';
+        if (user.priorities.length === 0) {
+            html += '<p style="text-align:center;">Belum ada prioritas</p>';
+        } else {
+            for (var i = 0; i < user.priorities.length; i++) {
+                var p = user.priorities[i];
+                html += '<div class="priority-item"><span>' + p.icon + ' ' + escapeHtml(p.name) + '</span><span>Urgensi: ' + p.urgency + '/10</span></div>';
+            }
+        }
+        html += '</div></div>';
+        root.innerHTML = html;
+        document.getElementById('closePrioritas').onclick = function() { renderHomePage(); };
+        document.getElementById('addPriorityBtn').onclick = function() { showAddModal(); };
+        renderBottomNav('home');
+    }
+    
+    function ingatanku(user) {
+        var today = new Date().toISOString().split('T')[0];
+        var todayExpenses = getTodayExpenses(currentUser);
+        if (user.dailyBudget && todayExpenses > user.dailyBudget) {
+            return "🔴 PERINGATAN! Pengeluaran hari ini (Rp " + todayExpenses.toLocaleString() + ") melebihi budget harian Anda (Rp " + user.dailyBudget.toLocaleString() + ")! 🔴";
+        }
+        if (user.balance < 100000) return "🚨 Saldo menipis! Hindari belanja tidak perlu.";
+        return "👍 Saldo aman, tetap pantau setiap transaksi.";
+    }
+    
+    function renderAturHarianPage() {
+        if (!currentUser || !users[currentUser]) return;
+        var user = users[currentUser];
+        var root = document.getElementById('appRoot');
+        root.innerHTML = '<div class="card"><div class="logo-area" style="justify-content:space-between;"><div></div><h2>📅 Atur Budget Harian</h2><i class="fas fa-times close-btn" id="closeAturHarian" style="font-size:1.5rem;"></i></div><input type="number" id="dailyBudgetInput" placeholder="Nominal maksimal per hari (Rp)" value="' + (user.dailyBudget || '') + '"><button class="btn" id="saveBudgetBtn">Simpan Budget Harian</button></div>';
+        document.getElementById('closeAturHarian').onclick = function() { renderHomePage(); };
+        document.getElementById('saveBudgetBtn').onclick = function() {
+            var budget = parseInt(document.getElementById('dailyBudgetInput').value);
+            if (isNaN(budget) || budget <= 0) { alert("Masukkan nominal yang valid!"); return; }
+            user.dailyBudget = budget;
+            saveUsers();
+            alert("Budget harian Rp " + budget.toLocaleString() + " berhasil disimpan!");
+            renderHomePage();
+        };
+        renderBottomNav('home');
+    }
+    
+    function renderDiagramPage() {
+        if (!currentUser || !users[currentUser]) return;
+        var user = users[currentUser];
+        var now = new Date();
+        var currentMonth = now.getMonth();
+        var currentYear = now.getFullYear();
+        var expenses = user.transactions.filter(function(t) {
+            if (t.type !== 'pengeluaran') return false;
+            var tDate = new Date(t.date);
+            return tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
+        });
+        var categories = {};
+        for (var i = 0; i < expenses.length; i++) {
+            var e = expenses[i];
+            categories[e.category] = (categories[e.category] || 0) + e.amount;
+        }
+        var root = document.getElementById('appRoot');
+        root.innerHTML = '<div class="card"><div class="logo-area" style="justify-content:space-between;"><div></div><h2>📊 Diagram Keuangan</h2><i class="fas fa-times close-btn" id="closeDiagram" style="font-size:1.5rem;"></i></div><div style="display:flex; flex-direction:column; align-items:center;"><canvas id="expenseChart" width="300" height="300"></canvas><div style="margin-top:20px;"><p>💰 Total Pengeluaran: Rp ' + expenses.reduce(function(a,b){return a+b.amount;},0).toLocaleString() + '</p><p>💎 Sisa Uang: Rp ' + user.balance.toLocaleString() + '</p></div></div></div>';
+        
+        var labels = Object.keys(categories);
+        var data = Object.values(categories);
+        if (labels.length === 0) { labels = ["Belum ada data"]; data = [1]; }
+        var ctx = document.getElementById('expenseChart').getContext('2d');
+        new Chart(ctx, { type: 'pie', data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#2c7da0', '#f4c542', '#e26d5c', '#6c5ce7', '#00b894', '#e84393'] }] } });
+        document.getElementById('closeDiagram').onclick = function() { renderHomePage(); };
+        renderBottomNav('home');
+    }
+    
+    function renderLaporanPage() {
+        if (!currentUser || !users[currentUser]) return;
+        var user = users[currentUser];
+        var now = new Date();
+        var currentYear = now.getFullYear();
+        var currentMonth = now.getMonth() + 1;
+        var monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        
+        function generateReport(year, month) {
+            var daysInMonth = new Date(year, month, 0).getDate();
+            var weeklyData = [];
+            for (var week = 1; week <= 4; week++) {
+                var startDay = (week-1)*7 + 1;
+                var endDay = Math.min(week*7, daysInMonth);
+                var weekExpenses = 0;
+                var weekIncome = 0;
+                for (var i = 0; i < user.transactions.length; i++) {
+                    var t = user.transactions[i];
+                    var tDate = new Date(t.date);
+                    if (tDate.getFullYear() == year && tDate.getMonth() == month-1 && tDate.getDate() >= startDay && tDate.getDate() <= endDay) {
+                        if (t.type === 'pengeluaran') weekExpenses += t.amount;
+                        else weekIncome += t.amount;
+                    }
+                }
+                var weekBalance = weekIncome - weekExpenses;
+                weeklyData.push({ week: week, income: weekIncome, expense: weekExpenses, balance: weekBalance });
+            }
+            return weeklyData;
+        }
+        
+        function render() {
+            var year = parseInt(document.getElementById('yearSelect').value);
+            var month = parseInt(document.getElementById('monthSelect').value);
+            var weekly = generateReport(year, month);
+            var html = '<h3>Laporan Bulan ' + monthNames[month-1] + ' ' + year + '</h3>';
+            for (var i = 0; i < weekly.length; i++) {
+                var w = weekly[i];
+                html += '<div class="priority-item"><span>Minggu ke-' + w.week + '</span><div>📥 Pemasukan: Rp ' + w.income.toLocaleString() + '<br>📤 Pengeluaran: Rp ' + w.expense.toLocaleString() + '<br>💎 Saldo: Rp ' + w.balance.toLocaleString() + '</div></div>';
+            }
+            document.getElementById('reportContent').innerHTML = html;
+        }
+        
+        var root = document.getElementById('appRoot');
+        var yearOptions = '';
+        for (var y = currentYear-1; y <= currentYear; y++) {
+            yearOptions += '<option value="' + y + '"' + (y === currentYear ? ' selected' : '') + '>' + y + '</option>';
+        }
+        var monthOptions = '';
+        for (var m = 1; m <= 12; m++) {
+            monthOptions += '<option value="' + m + '"' + (m === currentMonth ? ' selected' : '') + '>' + monthNames[m-1] + '</option>';
+        }
+        root.innerHTML = '<div class="card"><div class="logo-area" style="justify-content:space-between;"><div></div><h2>📅 Laporan Mingguan/Bulanan</h2><i class="fas fa-times close-btn" id="closeLaporan" style="font-size:1.5rem;"></i></div><select id="yearSelect">' + yearOptions + '</select><select id="monthSelect">' + monthOptions + '</select><button class="btn" id="generateReportBtn" style="margin-bottom:16px;">Generate Laporan</button><div id="reportContent"></div></div>';
+        document.getElementById('closeLaporan').onclick = function() { renderHomePage(); };
+        document.getElementById('generateReportBtn').onclick = function() { render(); };
+        render();
+        renderBottomNav('home');
+    }
+    
+    // ==================== PERUBAHAN: FITUR SCAN (dengan tombol Scan & Upload) ====================
+    function renderScanPage() {
+        if (!currentUser || !users[currentUser]) return;
+        var user = users[currentUser];
+        if (!user.uploadedPhotos) user.uploadedPhotos = [];
+        
+        var root = document.getElementById('appRoot');
+        
+        function renderPhotoList() {
+            var listHtml = '';
+            for (var i = user.uploadedPhotos.length - 1; i >= 0; i--) {
+                var photo = user.uploadedPhotos[i];
+                listHtml += '<div class="photo-history-item" data-idx="' + i + '">' +
+                    '<img src="' + photo.dataUrl + '" class="photo-history-img" alt="Foto struk">' +
+                    '<div class="photo-history-info">' +
+                    '<div><strong>' + escapeHtml(photo.merchant) + '</strong></div>' +
+                    '<div>💰 Rp ' + photo.amount.toLocaleString() + '</div>' +
+                    '<div>📅 ' + photo.date + '</div>' +
+                    '</div>' +
+                    '<i class="fas fa-trash-alt delete-photo" data-idx="' + i + '"></i>' +
+                    '</div>';
+            }
+            if (user.uploadedPhotos.length === 0) {
+                listHtml = '<p style="text-align:center; color:#8a99aa;">Belum ada riwayat upload foto</p>';
+            }
+            document.getElementById('photoHistoryList').innerHTML = listHtml;
+            
+            var deleteBtns = document.querySelectorAll('.delete-photo');
+            for (var j = 0; j < deleteBtns.length; j++) {
+                deleteBtns[j].onclick = function(e) {
+                    e.stopPropagation();
+                    var idx = parseInt(this.getAttribute('data-idx'));
+                    if (confirm("Hapus riwayat foto ini?")) {
+                        user.uploadedPhotos.splice(idx, 1);
+                        saveUsers();
+                        renderPhotoList();
+                    }
+                };
+            }
+        }
+        
+        root.innerHTML = '<div class="card" style="text-align:center;"><div class="logo-area" style="justify-content:center;"><div class="logo-placeholder" style="background:#2c7da0;color:white;"><i class="fas fa-camera"></i></div><h1>Scan & Upload</h1></div><div class="scan-buttons"><button class="btn" id="scanBtn" style="background:#4c9f70;"><i class="fas fa-qrcode"></i> Scan</button><button class="btn" id="uploadBtn" style="background:#2c7da0;"><i class="fas fa-upload"></i> Upload & Proses</button></div><div id="scanUploadArea" style="margin-top:16px;"></div></div><div class="card"><h3>📸 Riwayat Foto Struk</h3><div id="photoHistoryList"></div></div>';
+        
+        // Tombol SCAN - pemberitahuan pengembangan
+        document.getElementById('scanBtn').onclick = function() {
+            alert("📱 Fitur Scan sedang dalam pengembangan. Kami akan segera hadirkan!");
+        };
+        
+        // Tombol UPLOAD - pemberitahuan pengembangan (berbeda dengan yang lama)
+        document.getElementById('uploadBtn').onclick = function() {
+            alert("📤 Fitur Upload Struk sedang dalam pengembangan. Mohon tunggu update selanjutnya.");
+        };
+        
+        renderPhotoList();
+        renderBottomNav('scan');
+    }
+    
+    // ==================== EDIT PROFIL (dengan upload foto profil) ====================
+    function renderEditProfile() {
+        if (!currentUser || !users[currentUser]) return;
+        var user = users[currentUser];
+        var root = document.getElementById('appRoot');
+        
+        root.innerHTML = '<div class="card"><div class="logo-area" style="justify-content:center;"><div class="logo-placeholder" style="background:#2c7da0;color:white;"><i class="fas fa-user-edit"></i></div><h1>Edit Profil</h1></div>' +
+            '<div id="avatarPreview" style="text-align:center;">' +
+            '<img id="profileAvatarImg" src="' + (user.profileAvatar || '') + '" class="profile-avatar" onerror="this.style.display=\'none\'">' +
+            '</div>' +
+            '<input type="file" id="avatarUpload" accept="image/*" style="margin-top:8px;">' +
+            '<button class="btn-secondary btn-sm" id="uploadAvatarBtn" style="margin-top:8px; width:100%;">📸 Upload Foto Profil</button>' +
+            '<input type="text" id="editName" placeholder="Nama lengkap" value="' + escapeHtml(user.displayName) + '">' +
+            '<input type="text" id="editJob" placeholder="Pekerjaan" value="' + escapeHtml(user.job || '') + '">' +
+            '<input type="number" id="editIncome" placeholder="Pendapatan per bulan" value="' + (user.monthlyIncome || 0) + '">' +
+            '<input type="text" id="editSource" placeholder="Sumber penghasilan" value="' + escapeHtml(user.incomeSource || '') + '">' +
+            '<div class="flex-row">' +
+            '<button class="btn-secondary" id="cancelEditBtn">Batal</button>' +
+            '<button class="btn" id="saveEditBtn">Simpan Perubahan</button>' +
+            '</div></div>';
+        
+        var avatarInput = document.getElementById('avatarUpload');
+        var avatarImg = document.getElementById('profileAvatarImg');
+        
+        document.getElementById('uploadAvatarBtn').onclick = function() {
+            avatarInput.click();
+        };
+        
+        avatarInput.onchange = function(e) {
+            var file = e.target.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    avatarImg.src = ev.target.result;
+                    avatarImg.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        
+        document.getElementById('saveEditBtn').onclick = function() {
+            var newName = document.getElementById('editName').value.trim();
+            var newJob = document.getElementById('editJob').value.trim();
+            var newIncome = parseFloat(document.getElementById('editIncome').value);
+            var newSource = document.getElementById('editSource').value.trim();
+            
+            if (!newName || !newJob || isNaN(newIncome) || newIncome <= 0 || !newSource) {
+                alert("Harap isi semua data dengan benar!");
+                return;
+            }
+            
+            user.displayName = newName;
+            user.job = newJob;
+            user.monthlyIncome = newIncome;
+            user.incomeSource = newSource;
+            
+            if (avatarInput.files && avatarInput.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    user.profileAvatar = ev.target.result;
+                    saveUsers();
+                    renderAccountPage();
+                };
+                reader.readAsDataURL(avatarInput.files[0]);
+            } else {
+                saveUsers();
+                renderAccountPage();
+            }
+        };
+        
+        document.getElementById('cancelEditBtn').onclick = function() {
+            renderAccountPage();
+        };
+        
+        renderBottomNav('account');
+    }
+    
+    // ==================== HALAMAN AKUN (dengan tombol Edit Profil) ====================
+    function renderAccountPage() {
+        if (!currentUser || !users[currentUser]) return;
+        var user = users[currentUser];
+        var totalIn = 0, totalOut = 0;
+        for (var i = 0; i < user.transactions.length; i++) {
+            if (user.transactions[i].type === 'pemasukan') totalIn += user.transactions[i].amount;
+            else totalOut += user.transactions[i].amount;
+        }
+        var root = document.getElementById('appRoot');
+        root.innerHTML = '<div class="card"><div class="logo-area" style="justify-content:center;margin-bottom:16px;">' +
+            '<img src="' + (user.profileAvatar || '') + '" class="profile-avatar" onerror="this.style.display=\'none\'" style="width:80px;height:80px;border-radius:50%;object-fit:cover;">' +
+            '<h1>Profil Saya</h1>' +
+            '</div>' +
+            '<p><strong>Nama:</strong> ' + escapeHtml(user.displayName) + '</p>' +
+            '<p><strong>Pekerjaan:</strong> ' + escapeHtml(user.job || "-") + '</p>' +
+            '<p><strong>Pendapatan/bln:</strong> Rp ' + (user.monthlyIncome || 0).toLocaleString() + '</p>' +
+            '<p><strong>Sumber Penghasilan:</strong> ' + escapeHtml(user.incomeSource || "-") + '</p>' +
+            '<hr style="margin:16px 0;">' +
+            '<p><strong>Total Pemasukan:</strong> Rp ' + totalIn.toLocaleString() + '</p>' +
+            '<p><strong>Total Pengeluaran:</strong> Rp ' + totalOut.toLocaleString() + '</p>' +
+            '<hr style="margin:16px 0;">' +
+            '<button id="editProfileBtn" class="btn" style="margin-bottom:12px;"><i class="fas fa-edit"></i> Edit Profil</button>' +
+            '<button id="logoutBtn" class="btn-secondary">🚪 Keluar / Ganti Akun</button>' +
+            '</div>';
+        
+        document.getElementById('logoutBtn').onclick = function() { 
+            currentUser = null; 
+            localStorage.removeItem('bernaby_current_user'); 
+            checkInitialFlow(); 
+        };
+        
+        document.getElementById('editProfileBtn').onclick = function() { 
+            renderEditProfile(); 
+        };
+        
+        renderBottomNav('account');
+    }
+    
+    // ==================== HALAMAN UTAMA (dengan icon beruang di top bar) ====================
+    function renderHomePage() {
+        if (!currentUser || !users[currentUser]) { checkInitialFlow(); return; }
+        var user = users[currentUser];
+        var mood = getMoodStyle(user.balance, user.monthlyIncome || 1500000);
+        var sortedTransactions = mergeSortTransactions([].concat(user.transactions));
+        var totalPemasukan = 0;
+        var totalPengeluaran = 0;
+        for (var i = 0; i < sortedTransactions.length; i++) {
+            if (sortedTransactions[i].type === 'pemasukan') totalPemasukan += sortedTransactions[i].amount;
+            else totalPengeluaran += sortedTransactions[i].amount;
+        }
+        
+        var today = new Date().toISOString().split('T')[0];
+        var todayExpenses = getTodayExpenses(currentUser);
+        var isOverBudget = (user.dailyBudget && todayExpenses > user.dailyBudget);
+        
+        var root = document.getElementById('appRoot');
+        var trxHtml = '';
+        if (sortedTransactions.length === 0) {
+            trxHtml = '<tr><td colspan="8" style="text-align:center;padding:20px;">Belum ada transaksi</td></tr>';
+        } else {
+            for (var i = 0; i < Math.min(sortedTransactions.length, 15); i++) {
+                var t = sortedTransactions[i];
+                trxHtml += '<tr>' +
+                    '<td>' + (i+1) + '</td>' +
+                    '<td>' + (t.icon || "💰") + '</td>' +
+                    '<td>' + escapeHtml(t.desc) + '</td>' +
+                    '<td>' + escapeHtml(t.category) + '</td>' +
+                    '<td>Rp ' + t.amount.toLocaleString() + '</td>' +
+                    '<td>' + (t.type === 'pemasukan' ? '<span style="color:#2c7da0;">+ Pemasukan</span>' : '<span style="color:#e26d5c;">- Pengeluaran</span>') + '</td>' +
+                    '<td>' + t.date + '</td>' +
+                    '<td><i class="fas fa-trash-alt" style="color:#e26d5c;cursor:pointer;" data-id="' + t.id + '"></i></td>' +
+                    '</tr>';
+            }
+        }
+        
+        var fiturList = [
+            { icon: "fas fa-trophy", name: "Ranking" },
+            { icon: "fas fa-list-check", name: "Prioritas" },
+            { icon: "fas fa-bell", name: "Ingatanku" },
+            { icon: "fas fa-calendar-day", name: "Atur Harian" },
+            { icon: "fas fa-chart-pie", name: "Diagram" },
+            { icon: "fas fa-file-alt", name: "Laporan" }
+        ];
+        
+        var fiturHtml = '';
+        for (var i = 0; i < fiturList.length; i++) {
+            var f = fiturList[i];
+            fiturHtml += '<div class="fitur-icon-card" data-idx="' + i + '"><i class="' + f.icon + '"></i><span>' + f.name + (f.name === "Ingatanku" && isOverBudget ? '<span class="warning-badge">!</span>' : '') + '</span></div>';
+        }
+        
+        // Top bar dengan icon beruang di samping tulisan BERNABY
+        root.innerHTML = '<div class="top-bar" style="background:#2c7da0;">' +
+            '<div class="logo-area">' +
+            '<div class="logo-placeholder" style="background:white;color:#2c7da0;"><i class="fas fa-bear"></i></div>' +
+            '<h1>BERNABY</h1>' +
+            '</div>' +
+            '</div>' +
+            '<div class="halo-card" style="background:' + mood.cardBg + ';color:' + mood.cardText + ';">' +
+            '<div class="overview">' +
+            '<div class="saldo-box">' +
+            '<div class="halo-text">Halo, <strong>' + escapeHtml(user.displayName) + '</strong> 👋</div>' +
+            '<div class="balance">Rp ' + user.balance.toLocaleString() + '</div>' +
+            '<div class="label" style="color:' + (mood.cardText === 'white' ? 'rgba(255,255,255,0.8)' : '#5c3d00') + ';">Sisa uang bulan ini</div>' +
+            '</div>' +
+            '<div class="icon-mood ' + mood.bgClass + '" title="' + mood.label + '">' + mood.icon + '</div>' +
+            '</div>' +
+            '<div style="margin-top:20px;display:flex;gap:12px;">' +
+            '<button id="addIncomeBtn" class="btn" style="flex:1;background:#2c7da0;"><i class="fas fa-plus-circle"></i> Pemasukan</button>' +
+            '<button id="addExpenseBtn" class="btn" style="flex:1;background:#e26d5c;"><i class="fas fa-shopping-cart"></i> Pengeluaran</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="card">' +
+            '<h3>⭐ Fitur Andalan Bernaby</h3>' +
+            '<div class="fitur-grid" id="fiturGrid">' + fiturHtml + '</div>' +
+            '</div>' +
+            '<div class="card">' +
+            '<h3>📜 Riwayat Transaksi Terbaru</h3>' +
+            '<div style="overflow-x:auto;">' +
+            '<table class="transaction-table">' +
+            '<thead><tr><th>No</th><th>Icon</th><th>Deskripsi</th><th>Kategori</th><th>Jumlah</th><th>Tipe</th><th>Tanggal</th><th></th></tr></thead>' +
+            '<tbody>' + trxHtml + '</tbody>' +
+            '</table>' +
+            '</div>' +
+            '<div class="summary-stats">' +
+            '<span>📥 Pemasukan: Rp ' + totalPemasukan.toLocaleString() + '</span>' +
+            '<span>📤 Pengeluaran: Rp ' + totalPengeluaran.toLocaleString() + '</span>' +
+            '<span>💎 Sisa: Rp ' + user.balance.toLocaleString() + '</span>' +
+            '</div>' +
+            '</div>';
+        
+        var fiturCards = document.querySelectorAll('.fitur-icon-card');
+        for (var i = 0; i < fiturCards.length; i++) {
+            fiturCards[i].onclick = (function(idx) {
+                return function() { 
+                    if(idx === 0) renderRankingPage();
+                    else if(idx === 1) renderPrioritasPage();
+                    else if(idx === 2) alert("✨ Bernaby ✨\n\n" + ingatanku(users[currentUser]));
+                    else if(idx === 3) renderAturHarianPage();
+                    else if(idx === 4) renderDiagramPage();
+                    else if(idx === 5) renderLaporanPage();
+                };
+            })(i);
+        }
+        
+        var deleteIcons = document.querySelectorAll('.fa-trash-alt');
+        for (var i = 0; i < deleteIcons.length; i++) {
+            deleteIcons[i].onclick = function(e) {
+                var id = parseInt(this.getAttribute('data-id'));
+                if (confirm("Hapus transaksi ini?")) {
+                    deleteTransaction(currentUser, id);
+                    renderHomePage();
+                }
+            };
+        }
+        
+        document.getElementById('addIncomeBtn').onclick = function() { showAddModal('income', function() { renderHomePage(); }); };
+        document.getElementById('addExpenseBtn').onclick = function() { showAddModal('expense', function() { renderHomePage(); }); };
+        renderBottomNav('home');
+    }
+    
+    // Modal untuk tambah transaksi (fungsi asli)
+    function showAddModal(type, onSuccess) {
+        var modal = document.createElement('div');
+        modal.className = 'modal';
+        var icons = ["💰", "🍔", "🚗", "📚", "🎮", "👕", "🏠", "💊", "✈️", "🐻"];
+        var iconsHtml = '';
+        for (var i = 0; i < icons.length; i++) {
+            iconsHtml += '<div class="icon-option">' + icons[i] + '</div>';
+        }
+        modal.innerHTML = '<div class="modal-content"><h3>' + (type === 'income' ? '➕ Tambah Pemasukan' : '➖ Tambah Pengeluaran') + '</h3><input type="text" id="modalDesc" placeholder="' + (type === 'income' ? 'Deskripsi pemasukan' : 'Deskripsi pengeluaran') + '"><input type="number" id="modalAmount" placeholder="Nominal (Rp)"><input type="date" id="modalDate" value="' + new Date().toISOString().split('T')[0] + '"><input type="text" id="modalCategory" placeholder="Kategori" value="Umum"><div style="margin: 12px 0;"><label>Pilih Icon:</label><div class="icon-select" id="iconSelect">' + iconsHtml + '</div></div><div class="flex-row"><button class="btn-secondary" id="cancelModalBtn" style="flex:1;">Batal</button><button class="btn" id="confirmModalBtn" style="flex:1;">Simpan</button></div></div>';
+        document.body.appendChild(modal);
+        
+        var selectedIcon = "💰";
+        var iconDivs = modal.querySelectorAll('.icon-option');
+        for (var i = 0; i < iconDivs.length; i++) {
+            iconDivs[i].onclick = function() {
+                var parent = this.parentNode;
+                var all = parent.querySelectorAll('.icon-option');
+                for (var j = 0; j < all.length; j++) all[j].classList.remove('selected');
+                this.classList.add('selected');
+                selectedIcon = this.innerHTML;
+            };
+        }
+        iconDivs[0].classList.add('selected');
+        
+        modal.querySelector('#confirmModalBtn').onclick = function() {
+            var desc = modal.querySelector('#modalDesc').value.trim();
+            var amount = parseFloat(modal.querySelector('#modalAmount').value);
+            var date = modal.querySelector('#modalDate').value;
+            var category = modal.querySelector('#modalCategory').value.trim() || "Umum";
+            if (!desc || isNaN(amount) || amount <= 0) { alert("Isi data dengan benar!"); return; }
+            var typeTx = type === 'income' ? 'pemasukan' : 'pengeluaran';
+            if (typeTx === 'pengeluaran' && users[currentUser].balance < amount) { alert("Saldo tidak cukup!"); modal.remove(); return; }
+            addTransaction(currentUser, typeTx, desc, amount, category, selectedIcon, date);
+            modal.remove();
+            if (onSuccess) onSuccess();
+        };
+        modal.querySelector('#cancelModalBtn').onclick = function() { modal.remove(); };
+    }
+    
+    function renderBottomNav(active) {
+        var navPlaceholder = document.getElementById('bottomNavPlaceholder');
+        navPlaceholder.innerHTML = '<div class="bottom-nav">' +
+            '<div class="nav-item ' + (active === 'home' ? 'active' : '') + '" id="navHome"><i class="fas fa-home"></i><span>Beranda</span></div>' +
+            '<div class="nav-item ' + (active === 'scan' ? 'active' : '') + '" id="navScan"><i class="fas fa-qrcode"></i><span>Scan</span></div>' +
+            '<div class="nav-item ' + (active === 'account' ? 'active' : '') + '" id="navAccount"><i class="fas fa-user"></i><span>Akun</span></div>' +
+            '</div>';
+        document.getElementById('navHome').onclick = function() { if (currentUser) renderHomePage(); };
+        document.getElementById('navScan').onclick = function() { if (currentUser) renderScanPage(); };
+        document.getElementById('navAccount').onclick = function() { if (currentUser) renderAccountPage(); };
+    }
+    
+    // ==================== ONBOARDING & AUTH ====================
+    function renderProfileForm(onComplete) {
+        var root = document.getElementById('appRoot');
+        root.innerHTML = '<div class="card" style="text-align:center;"><div class="logo-area" style="justify-content:center;"><div class="logo-placeholder" style="background:#2c7da0;color:white;"><i class="fas fa-bear"></i></div><h1 style="font-family:\'Fredoka One\', cursive;">BERNABY</h1></div><p style="margin-bottom:20px;">😊 Lengkapi data diri untuk memulai</p><input type="text" id="profileName" placeholder="Nama lengkap / panggilan"><input type="text" id="profileJob" placeholder="Pekerjaan / Mahasiswa"><input type="number" id="profileIncome" placeholder="Pendapatan per bulan (Rp)" value="1500000"><input type="text" id="profileSource" placeholder="Sumber penghasilan"><button class="btn" id="saveProfileBtn">Lanjutkan → Buat Password</button></div>';
+        document.getElementById('saveProfileBtn').onclick = function() {
+            var name = document.getElementById('profileName').value.trim();
+            var job = document.getElementById('profileJob').value.trim();
+            var income = parseFloat(document.getElementById('profileIncome').value);
+            var source = document.getElementById('profileSource').value.trim();
+            if (!name || !job || isNaN(income) || income <= 0 || !source) { alert("Harap isi semua data dengan benar!"); return; }
+            tempProfile = { name: name, job: job, monthlyIncome: income, incomeSource: source };
+            onComplete();
+        };
+    }
+    
+    function renderCreatePassword(onComplete) {
+        var root = document.getElementById('appRoot');
+        root.innerHTML = '<div class="card" style="text-align:center;"><div class="logo-area" style="justify-content:center;"><div class="logo-placeholder" style="background:#2c7da0;color:white;"><i class="fas fa-lock"></i></div><h1 style="font-family:\'Fredoka One\', cursive;">Buat Password</h1></div><p>Buat password untuk mengakses Bernaby kembali nanti</p><input type="password" id="newPassword" placeholder="Masukkan password"><input type="password" id="confirmPassword" placeholder="Konfirmasi password"><button class="btn" id="createPasswordBtn">Simpan & Mulai</button></div>';
+        document.getElementById('createPasswordBtn').onclick = function() {
+            var pwd = document.getElementById('newPassword').value;
+            var confirm = document.getElementById('confirmPassword').value;
+            if (!pwd || pwd !== confirm) { alert("Password tidak cocok atau kosong!"); return; }
+            var username = "user_" + Date.now();
+            if (createFullUser(username, pwd, tempProfile)) {
+                currentUser = username;
+                localStorage.setItem('bernaby_current_user', username);
+                localStorage.setItem('bernaby_has_account', 'true');
+                onComplete();
+            } else { alert("Gagal membuat akun!"); }
+        };
+    }
+    
+    function renderPasswordLogin(onSuccess) {
+        var root = document.getElementById('appRoot');
+        root.innerHTML = '<div class="card" style="text-align:center;"><div class="logo-area" style="justify-content:center;"><div class="logo-placeholder" style="background:#2c7da0;color:white;"><i class="fas fa-key"></i></div><h1 style="font-family:\'Fredoka One\', cursive;">BERNABY</h1></div><p>Masukkan password akun Anda</p><input type="password" id="loginPassword" placeholder="Password"><button class="btn" id="submitPasswordBtn">Masuk</button><div class="forgot-link" id="forgotPasswordLink">Lupa password?</div></div>';
+        document.getElementById('submitPasswordBtn').onclick = function() {
+            var pwd = document.getElementById('loginPassword').value;
+            var foundUser = null;
+            for (var u in users) {
+                if (users[u].password === pwd) { foundUser = u; break; }
+            }
+            if (foundUser) {
+                currentUser = foundUser;
+                localStorage.setItem('bernaby_current_user', currentUser);
+                onSuccess();
+            } else { alert("Password salah!"); }
+        };
+        document.getElementById('forgotPasswordLink').onclick = function() { renderForgotPassword(); };
+    }
+    
+    function renderForgotPassword() {
+        var root = document.getElementById('appRoot');
+        root.innerHTML = '<div class="card" style="text-align:center;"><div class="logo-area" style="justify-content:center;"><div class="logo-placeholder" style="background:#2c7da0;color:white;"><i class="fas fa-key"></i></div><h1>Lupa Password</h1></div><p>Masukkan nama pengguna Anda untuk mereset password</p><input type="text" id="forgotUsername" placeholder="Nama pengguna"><button class="btn" id="checkUserBtn">Cari Akun</button><button class="btn-secondary" id="backToLoginBtn" style="margin-top:12px;">Kembali ke Login</button></div>';
+        
+        document.getElementById('backToLoginBtn').onclick = function() { renderPasswordLogin(function() { renderHomePage(); }); };
+        document.getElementById('checkUserBtn').onclick = function() {
+            var username = document.getElementById('forgotUsername').value.trim();
+            var foundUser = null;
+            for (var u in users) {
+                if (users[u].displayName === username) {
+                    foundUser = u;
+                    break;
+                }
+            }
+            if (foundUser) {
+                renderResetPassword(foundUser);
+            } else {
+                alert("Nama pengguna tidak ditemukan!");
+            }
+        };
+    }
+    
+    function renderResetPassword(username) {
+        var root = document.getElementById('appRoot');
+        root.innerHTML = '<div class="card" style="text-align:center;"><div class="logo-area" style="justify-content:center;"><div class="logo-placeholder" style="background:#2c7da0;color:white;"><i class="fas fa-lock"></i></div><h1>Reset Password</h1></div><p>Buat password baru untuk akun <strong>' + escapeHtml(users[username].displayName) + '</strong></p><input type="password" id="newPassword" placeholder="Password baru"><input type="password" id="confirmPassword" placeholder="Konfirmasi password baru"><button class="btn" id="resetPasswordBtn">Reset Password</button><button class="btn-secondary" id="cancelResetBtn" style="margin-top:12px;">Batal</button></div>';
+        
+        document.getElementById('resetPasswordBtn').onclick = function() {
+            var newPwd = document.getElementById('newPassword').value;
+            var confirmPwd = document.getElementById('confirmPassword').value;
+            if (!newPwd || newPwd !== confirmPwd) {
+                alert("Password tidak cocok atau kosong!");
+                return;
+            }
+            users[username].password = newPwd;
+            saveUsers();
+            alert("Password berhasil direset! Silakan login dengan password baru.");
+            renderPasswordLogin(function() { renderHomePage(); });
+        };
+        document.getElementById('cancelResetBtn').onclick = function() { renderPasswordLogin(function() { renderHomePage(); }); };
+    }
+    
+    function checkInitialFlow() {
+        var hasAccount = localStorage.getItem('bernaby_has_account') === 'true';
+        var savedUser = localStorage.getItem('bernaby_current_user');
+        if (hasAccount && savedUser && users[savedUser]) {
+            renderPasswordLogin(function() { renderHomePage(); });
+        } else if (hasAccount) {
+            renderPasswordLogin(function() { renderHomePage(); });
+        } else {
+            if (!onboardCompleted && skipCounter < MAX_SKIP) {
+                renderOnboardingStep(0, function() {
+                    renderProfileForm(function() {
+                        renderCreatePassword(function() { renderHomePage(); });
+                    });
+                });
+            } else {
+                renderProfileForm(function() {
+                    renderCreatePassword(function() { renderHomePage(); });
+                });
+            }
+        }
+    }
+    
+    checkInitialFlow();
+})();
+</script>
+</body>
+</html>
